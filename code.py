@@ -328,7 +328,7 @@ def main():
 
                 # Download the output file
                 csv = scraped_data.to_csv(index=False)
-                st.download_button(label="Download Output", data=csv, file_name='scraped_data.csv',
+                st.download_button(label="Download Output", data=csv, file_name='Bandera_scraped_data.csv',
                                    mime='text/csv')
 
         except Exception as e:
