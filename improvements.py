@@ -80,7 +80,9 @@ def main():
     if uploaded_file is not None:
         try:
             df = pd.read_excel(uploaded_file)
-            parcel_numbers = df['parcel_number'].tolist()
+            min_range = st.number_input('Enter the start index of parcel numbers:', value=0)
+            max_range = st.number_input('Enter the end index of parcel numbers:', value=len(df), min_value=min_range, max_value=len(df))
+            parcel_numbers = df['parcel_number'].iloc[min_range:max_range].tolist()
 
             available_fields = ['Select All', 'txroll_cadaccountnumber','Value','row_data','description','Type','State_Code','Living_Area']
 
@@ -94,7 +96,7 @@ def main():
                 st.write(scraped_data)
 
                 csv = scraped_data.to_csv(index=False)
-                st.download_button(label="Download Output", data=csv, file_name='scraped_data.csv', mime='text/csv')
+                st.download_button(label="Download Output", data=csv, file_name='bandera_scraped_data.csv', mime='text/csv')
 
         except Exception as e:
             st.warning(f"Error: {str(e)}")
