@@ -4,6 +4,8 @@ import re
 import requests
 from bs4 import BeautifulSoup
 import time
+
+
 def scrape_data(parcel_numbers, selected_fields):
     rows = []
     total_requests = len(parcel_numbers)
@@ -21,7 +23,7 @@ def scrape_data(parcel_numbers, selected_fields):
                 'Property_Use': '',
                 'Situs_Address': '',
                 'Map_ID': '',
-                'Zoning':'' ,
+                'Zoning': '',
                 'Mapsco': '',
                 'Legal_Description': '',
                 'Abstract_Subdivision': '',
@@ -30,9 +32,9 @@ def scrape_data(parcel_numbers, selected_fields):
                 'name': '',
                 'Agent': '',
                 'Mailing_Address': '',
-                'Ownership':'',
+                'Ownership': '',
                 'Improvement_Homesite_Value': '',
-                'personal_property_value':'',
+                'personal_property_value': '',
                 'Improvement_Non_Homesite_Value': '',
                 'Land_Homesite_Value': '',
                 'Land_Non_Homesite_Value': '',
@@ -41,7 +43,6 @@ def scrape_data(parcel_numbers, selected_fields):
                 'Appraised_Value': '',
                 'Assessed_Value': '',
                 'Ag_Use_Value': ''
-
             }
 
             if 'prop_id' in selected_fields:
@@ -50,16 +51,15 @@ def scrape_data(parcel_numbers, selected_fields):
                 prop_id = ' '.join(prop_id)
                 prop_id = re.sub('\s+', ' ', prop_id).replace('Property ID:</th> <td class="tbltrwidth">', '').strip()
                 scraped_data['prop_id'] = prop_id
-                print(prop_id)
 
             if 'Geographic_ID' in selected_fields:
-                Geographic_ID = re.findall(
-                    r'Geographic ID: <\/strong>[^<>]*', str(soup))
+                Geographic_ID = re.findall(r'Geographic ID: <\/strong>[^<>]*', str(soup))
                 Geographic_ID = list(set(Geographic_ID))
                 Geographic_ID = ' '.join(Geographic_ID)
                 Geographic_ID = re.sub('\s+', ' ', Geographic_ID).replace('Geographic ID: </strong>', '').strip()
                 scraped_data['Geographic_ID'] = Geographic_ID
-            #
+
+            # Similar processing for other fields...
             if 'Type' in selected_fields:
                 Type = re.findall(
                     r'Type:<\/th>\s+<td>[^<>]*', str(soup))
@@ -262,6 +262,12 @@ def scrape_data(parcel_numbers, selected_fields):
                                                                         '').strip()
                 scraped_data['Ag_Use_Value'] = Ag_Use_Value
 
+            # if 'Exemptions' in selected_fields:
+            #     Exemptions = re.findall(r'Exemptions:<\/th>\s+<td colspan="3">[^<>]*', str(soup))
+            #     Exemptions = list(set(Exemptions))
+            #     Exemptions = ' '.join(Exemptions)
+            #     Exemptions = re.sub('\s+', ' ', Exemptions).replace('Exemptions:</th> <td colspan="3">', '').strip()
+            #     scraped_data['Exemptions'] = Exemptions
 
             # Create a dictionary to store the scraped data
             row_dict = {'parcel_number': txroll_cadaccountnumber, **scraped_data}
@@ -273,18 +279,19 @@ def scrape_data(parcel_numbers, selected_fields):
             remaining_requests = total_requests - idx
             estimated_time_remaining = avg_time_per_request * remaining_requests
 
-            st.markdown(f"<p style='color: green;'>Estimated time remaining: {round(estimated_time_remaining, 2)} seconds  {idx} completed</p>",
-                        unsafe_allow_html=True)
+            st.markdown(
+                f"<p style='color: green;'>Estimated time remaining: {round(estimated_time_remaining, 2)} seconds  {idx} completed</p>",
+                unsafe_allow_html=True)
 
         except Exception as e:
             st.warning(f"Failed to fetch data for parcel number {txroll_cadaccountnumber}: {str(e)}")
             # Set all selected fields to empty strings
             scraped_data = {field: '' for field in selected_fields}
 
-        # Append the row_dict to the rows list
-
     result_df = pd.DataFrame(rows)
     return result_df
+
+
 def main():
     st.title('Bandera Property Scraper')
     st.write("Upload an Excel file containing 'parcel_number' column.")
@@ -294,10 +301,19 @@ def main():
     if uploaded_file is not None:
         try:
             df = pd.read_excel(uploaded_file)
-            parcel_numbers = df['parcel_number'].tolist()
+            min_range = st.number_input('Enter the start index of parcel numbers:', value=0)
+            max_range = st.number_input('Enter the end index of parcel numbers:', value=len(df), min_value=min_range,
+                                        max_value=len(df))
+            parcel_numbers = df['parcel_number'].iloc[min_range:max_range].tolist()
 
             # Define available fields for selection
-            available_fields = ['Select All', 'prop_id','Geographic_ID','Type','Property_Use','Situs_Address','Map_ID','Zoning','Mapsco','Legal_Description','Abstract_Subdivision','Neighborhood','owner_ID','name','Agent','Mailing_Address','Ownership','Improvement_Homesite_Value','personal_property_value','Improvement_Non_Homesite_Value','Land_Homesite_Value','Land_Non_Homesite_Value','Agricultural_Market_Valuation','Market_Value','Appraised_Value','Assessed_Value','Ag_Use_Value']  # Add more fields here
+            available_fields = ['Select All', 'prop_id', 'Geographic_ID', 'Type', 'Property_Use', 'Situs_Address',
+                                'Map_ID', 'Zoning', 'Mapsco', 'Legal_Description', 'Abstract_Subdivision',
+                                'Neighborhood', 'owner_ID', 'name', 'Agent', 'Mailing_Address', 'Ownership',
+                                'Improvement_Homesite_Value', 'personal_property_value',
+                                'Improvement_Non_Homesite_Value', 'Land_Homesite_Value', 'Land_Non_Homesite_Value',
+                                'Agricultural_Market_Valuation', 'Market_Value', 'Appraised_Value', 'Assessed_Value',
+                                'Ag_Use_Value']  # Add more fields here
 
             # Checkbox options for selecting fields
             selected_fields = st.multiselect('Select Fields for Output', available_fields)
@@ -312,11 +328,12 @@ def main():
 
                 # Download the output file
                 csv = scraped_data.to_csv(index=False)
-                st.download_button(label="Download Output", data=csv, file_name='scraped_data1e.csv',
+                st.download_button(label="Download Output", data=csv, file_name='scraped_data.csv',
                                    mime='text/csv')
 
         except Exception as e:
             st.warning(f"Error: {str(e)}")
+
 
 if __name__ == "__main__":
     main()
