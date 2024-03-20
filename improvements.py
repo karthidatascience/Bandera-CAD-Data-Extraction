@@ -64,6 +64,7 @@ def scrape_data(parcel_numbers, selected_fields):
 
             st.markdown(f"<p style='color: green;'>Estimated time remaining: {round(estimated_time_remaining, 2)} seconds  {idx} completed</p>",
                         unsafe_allow_html=True)
+            time.sleep(1)
 
         except Exception as e:
             st.warning(f"Failed to fetch data for parcel number {txroll_cadaccountnumber}: {str(e)}")
