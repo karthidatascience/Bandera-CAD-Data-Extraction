@@ -293,7 +293,7 @@ def scrape_data(parcel_numbers, selected_fields):
 
 
 def main():
-    st.title('Bandera Property Scraper')
+    st.title('FBCAD Property Scraper')
     st.write("Upload an Excel file containing 'parcel_number' column.")
 
     uploaded_file = st.file_uploader("Upload Excel file", type=['xlsx', 'xls'])
