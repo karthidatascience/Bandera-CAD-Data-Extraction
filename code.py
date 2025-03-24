@@ -12,7 +12,7 @@ def scrape_data(parcel_numbers, selected_fields):
     start_time = time.time()
 
     for idx, txroll_cadaccountnumber in enumerate(parcel_numbers, start=1):
-        url = f'https://esearch.fbcad.org/Property/View/{txroll_cadaccountnumber}?year=2023'
+        url = f'https://esearch.millscad.org/Property/View/{txroll_cadaccountnumber}?year=2023'
         r = requests.get(url)
         try:
             soup = BeautifulSoup(r.content, 'html.parser')
